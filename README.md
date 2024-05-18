@@ -1,2 +1,5 @@
-# portfolio
-All the code that used for building my personal portfolio.
+My portfolio 
+- HTML
+- CSS
+- Javascript
+- ReactJS
