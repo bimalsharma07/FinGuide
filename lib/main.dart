@@ -16,7 +16,6 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => SavingsService()),
         ChangeNotifierProvider(create: (context) => WealthService()), 
-        // ^ If you keep Wealth logic separate
       ],
       child: const MyApp(),
     ),
@@ -29,6 +28,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'FinGuide',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
