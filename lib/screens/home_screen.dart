@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        elevation: 4,
+        elevation: 1,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -74,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SnackBar(
               content: Text(
                 '£${amount.toStringAsFixed(2)} Loaded in your Account',
-                style: GoogleFonts.poppins(color: Colors.white),
+                style: GoogleFonts.dmSans(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
@@ -87,12 +87,30 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─────────────────────────────────────────────────────────────────────────────
   // NAVIGATION BAR
   // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildNavigationBar() {
-    return NavigationBar(
+ Widget _buildNavigationBar() {
+  return Theme(
+    data: Theme.of(context).copyWith(
+      // Define the NavigationBar theme
+      navigationBarTheme: NavigationBarThemeData(
+        // Define the label text style
+        labelTextStyle: MaterialStateProperty.all<TextStyle>(
+          GoogleFonts.dmSans( 
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0D1C2E), 
+          ),
+        ),
+        // Optionally, define the indicator color
+        indicatorColor: primaryColor.withOpacity(0.1),
+        // Optionally, define the background color
+        backgroundColor: Colors.white,
+      ),
+    ),
+    child: NavigationBar(
       selectedIndex: _selectedIndex,
       onDestinationSelected: (index) => setState(() => _selectedIndex = index),
       height: 72,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.white, // This can be omitted if set in theme
       elevation: 8,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       destinations: const [
@@ -111,14 +129,14 @@ class _HomeScreenState extends State<HomeScreen> {
           selectedIcon: Icon(Icons.account_balance_wallet, size: 26),
           label: 'Transaction',
         ),
-        // Replaced Profile with Wealth
         NavigationDestination(
-          icon: Icon(Icons.pie_chart_outline, size: 26),
-          selectedIcon: Icon(Icons.pie_chart, size: 26),
+          icon: Icon(Icons.currency_pound_outlined, size: 26),
+          selectedIcon: Icon(Icons.currency_pound, size: 26),
           label: 'Wealth',
         ),
       ],
-    );
+    )
+  );
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -133,7 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
       case 2:
         return const TransactionScreen();
       case 3:
-        // Navigate to new Wealth screen
         return WealthManagementScreen();
       default:
         return _buildHomeContent();
@@ -179,9 +196,10 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: const Icon(Icons.payment, color: Colors.white),
         label: Text(
           'Pay Bills',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.dmSans(
             color: Colors.white,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
           ),
         ),
         style: ElevatedButton.styleFrom(
@@ -216,10 +234,11 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ElevatedButton.icon(
         icon: const Icon(Icons.flag, color: Colors.white),
         label: Text(
-          'Grow My Savings',
-          style: GoogleFonts.poppins(
+          'Set Savings Goal',
+          style: GoogleFonts.dmSans(
             color: Colors.white,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
           ),
         ),
         style: ElevatedButton.styleFrom(
@@ -248,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SnackBar(
               content: Text(
                 'Goal for $category set successfully!',
-                style: GoogleFonts.poppins(color: Colors.white),
+                style: GoogleFonts.dmSans(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
@@ -268,9 +287,10 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: const Icon(Icons.savings, color: Colors.white),
         label: Text(
           'Transfer to Savings',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.dmSans(
             color: Colors.white,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
           ),
         ),
         style: ElevatedButton.styleFrom(
@@ -298,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
               SnackBar(
                 content: Text(
                   'Transfer failed: Insufficient balance.',
-                  style: GoogleFonts.poppins(color: Colors.white),
+                  style: GoogleFonts.dmSans(color: Colors.white),
                 ),
                 backgroundColor: Colors.red,
               ),
@@ -314,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SnackBar(
               content: Text(
                 '£${amount.toStringAsFixed(2)} transferred to $category!',
-                style: GoogleFonts.poppins(color: Colors.white),
+                style: GoogleFonts.dmSans(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
@@ -335,17 +355,17 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome Back,',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
+              'Welcome 👋',
+              style: GoogleFonts.dmSans(
+                fontSize: 20,
                 color: Colors.grey.shade600,
               ),
             ),
             Text(
               'Bimal',
-              style: GoogleFonts.poppins(
-                fontSize: 26,
-                fontWeight: FontWeight.w600,
+              style: GoogleFonts.dmSans(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
                 color: primaryColor,
               ),
             ),
@@ -361,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: CircleAvatar(
             radius: 24,
             backgroundColor: primaryColor.withOpacity(0.1),
-            child: Icon(Icons.account_circle, color: primaryColor, size: 32),
+            child: Icon(Icons.account_circle, color: primaryColor, size: 38),
           ),
         ),
       ],
@@ -373,6 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildBalanceCard(SavingsService service) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: primaryColor.withOpacity(0.03),
@@ -380,27 +401,28 @@ class _HomeScreenState extends State<HomeScreen> {
         border: Border.all(color: primaryColor.withOpacity(0.1)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             'Total Balance',
-            style: GoogleFonts.poppins(
-              color: Colors.grey.shade600,
-              fontSize: 14,
+            style: GoogleFonts.dmSans(
+              color: Color(0xFF0D1C2E),
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             '£${service.balance.toStringAsFixed(2)}',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.dmSans(
               color: primaryColor,
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
+              fontSize: 40,
+              fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.green.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
@@ -416,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 4),
                 Text(
                   '+2.4%',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.dmSans(
                     color: Colors.green.shade800,
                     fontWeight: FontWeight.w600,
                   ),
@@ -439,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildFinanceCard(
             title: 'Income',
             amount: '£3,000',
-            color: Colors.green.shade800,
+            color: Colors.green,
             icon: Icons.arrow_upward_rounded,
           ),
         ),
@@ -448,7 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildFinanceCard(
             title: 'Expenses',
             amount: '£800',
-            color: Colors.red.shade800,
+            color: Colors.red,
             icon: Icons.arrow_downward_rounded,
           ),
         ),
@@ -485,9 +507,10 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.dmSans(
                   color: color,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 20,
                 ),
               ),
             ],
@@ -495,10 +518,10 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 12),
           Text(
             amount,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.dmSans(
               color: primaryColor,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ],
