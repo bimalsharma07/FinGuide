@@ -19,100 +19,254 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final wealthService = Provider.of<WealthService>(context);
-    final assets = wealthService.assets; // Fetch assets
-    final totalNetWorth = wealthService.totalNetWorth; // Calculate net worth
+    final assets = wealthService.assets;
+    final totalNetWorth = wealthService.totalNetWorth;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Wealth Dashboard')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildNetWorthHeader(totalNetWorth),
-            const SizedBox(height: 24),
-            _buildAssetsListHeader(),
-            const SizedBox(height: 8),
-            _buildAssetsList(assets, totalNetWorth, wealthService),
-          ],
-        ),
-      ),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
+        backgroundColor: const Color.fromARGB(255, 218, 222, 228),
+        child: const Icon(Icons.add, color: Colors.white, size: 24),
         onPressed: () => _showAddAssetDialog(context, wealthService),
       ),
-    );
-  }
-
-  Widget _buildNetWorthHeader(double totalNetWorth) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Net Worth', style: Theme.of(context).textTheme.bodyMedium),
-        Text(
-          _currencyFormat.format(totalNetWorth),
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAssetsListHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('Your Assets', style: Theme.of(context).textTheme.titleLarge),
-        Text('Value', style: Theme.of(context).textTheme.titleLarge),
-      ],
-    );
-  }
-
-   Widget _buildAssetsList(
-      List<Asset> assets, double totalNetWorth, WealthService wealthService) {
-    return ListView.separated(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: assets.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final asset = assets[index];
-        final currentValue = asset.getCurrentValue();
-
-        return ListTile(
-          leading: _getAssetIcon(asset.type),
-          title: Text(asset.name),
-          subtitle: Text(
-            asset.type == 'Cash' 
-                ? 'Cash' 
-                : '${asset.type} (Purchased: ${DateFormat('yyyy-MM-dd').format(asset.dateOfPurchase)})',
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9)],
           ),
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
+        ),
+        child: SafeArea(
+          child: Column(
             children: [
-              Text(
-                'Current: ${_currencyFormat.format(currentValue)}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Wealth Dashboard',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0D1C2E),
+                        fontFamily: 'DmSans',
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white.withOpacity(0.8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Net Worth',
+                              style: TextStyle(
+                                color: Color(0xFF64748B),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _currencyFormat.format(totalNetWorth),
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Your Assets',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                              fontFamily: 'DmSans',
+                            ),
+                          ),
+                          Text(
+                            'Value',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                              fontFamily: 'DmSans',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              if(asset.type != 'Cash') Text(
-                'Initial: ${_currencyFormat.format(asset.value)}',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-              ),
-              Text(
-                'Change: ${_currencyFormat.format(currentValue - asset.value)}',
-                style: TextStyle(
-                  color: currentValue >= asset.value ? Colors.green : Colors.red,
-                  fontSize: 12,
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: assets.length,
+                  itemBuilder: (context, index) {
+                    final asset = assets[index];
+                    final currentValue = asset.getCurrentValue();
+                    final change = currentValue - asset.value;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Container(
+                        height: 220,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          color: Colors.white.withOpacity(0.8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: InkWell(
+                          onTap: () => _editAssetDialog(context, wealthService, asset, index),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFF1F5F9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: _getAssetIcon(asset.type),
+                                ),
+                                const SizedBox(width: 20),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        asset.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        asset.type == 'Cash'
+                                            ? 'Cash'
+                                            : '${asset.type} • Purchased: ${DateFormat('yyyy-MM-dd').format(asset.dateOfPurchase)}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF64748B),
+                                          fontSize: 16,
+                                          fontFamily: 'DmSans',
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      _buildFinancialInfo(
+                                        current: currentValue,
+                                        initial: asset.value,
+                                        change: change,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
           ),
-          onTap: () => _editAssetDialog(context, wealthService, asset, index),
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFinancialInfo({
+    required double current,
+    required double initial,
+    required double change,
+  }) {
+    return Column(
+      children: [
+        _buildValueRow(label: 'Current:', value: current, fontSize: 16),
+        const SizedBox(height: 8),
+        _buildValueRow(
+          label: 'Initial:',
+          value: initial,
+          fontSize: 16,
+          color: const Color(0xFF64748B),
+        ),
+        const SizedBox(height: 8),
+        _buildValueRow(
+          label: 'Change:',
+          value: change,
+          fontSize: 16,
+          color: change >= 0 ? Colors.green : Colors.red,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildValueRow({
+    required String label,
+    required double value,
+    required double fontSize,
+    Color color = Colors.black,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF64748B),
+            fontSize: fontSize,
+            fontFamily: 'DmSans',
+          ),
+        ),
+        Text(
+           label == 'Change:' 
+            ? '${value >= 0 ? '+' : ''}${_currencyFormat.format(value)}'
+            : _currencyFormat.format(value),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: color,
+            fontSize: fontSize + 2,
+          ),
+        ),
+      ],
     );
   }
 
@@ -123,7 +277,11 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
       'Stock': Icons.trending_up,
       'Cash': Icons.account_balance,
     };
-    return Icon(icons[type] ?? Icons.attach_money);
+    return Icon(
+      icons[type] ?? Icons.attach_money,
+      color: const Color(0xFF475569),
+      size: 28,
+    );
   }
 
   void _showAddAssetDialog(BuildContext context, WealthService wealthService) {
@@ -132,8 +290,8 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
       builder: (context) => Dialog(
         child: AddAssetForm(
           onAdd: (newAsset) {
-            wealthService.addAsset(newAsset); // Add asset to WealthService
-            Navigator.pop(context); // Close dialog
+            wealthService.addAsset(newAsset);
+            Navigator.pop(context);
           },
         ),
       ),
@@ -141,15 +299,19 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
   }
 
   void _editAssetDialog(
-      BuildContext context, WealthService wealthService, Asset asset, int index) {
+    BuildContext context,
+    WealthService wealthService,
+    Asset asset,
+    int index,
+  ) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
         child: EditAssetForm(
           asset: asset,
           onSave: (updatedAsset) {
-            wealthService.updateAsset(index, updatedAsset); // Update asset
-            Navigator.pop(context); // Close dialog
+            wealthService.updateAsset(index, updatedAsset);
+            Navigator.pop(context);
           },
         ),
       ),
