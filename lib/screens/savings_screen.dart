@@ -28,8 +28,8 @@ class _SavingsScreenState extends State<SavingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Savings Goals',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w700,
+          style: GoogleFonts.dmSans(
+            fontWeight: FontWeight.w900,
             color: primaryColor,
             fontSize: 24,
           ),
@@ -92,7 +92,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Total Saved',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.dmSans(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: primaryColor.withOpacity(0.8),
