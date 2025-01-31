@@ -47,8 +47,8 @@ class _TransactionScreenState extends State<TransactionScreen>
       appBar: AppBar(
         title: Text(
           'Transaction History',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w700,
+          style: GoogleFonts.dmSans(
+            fontWeight: FontWeight.w900,
             color: primaryColor,
             fontSize: 24,
           ),
@@ -78,12 +78,12 @@ class _TransactionScreenState extends State<TransactionScreen>
           isScrollable: false,
           labelPadding: const EdgeInsets.symmetric(horizontal: 0),
           indicatorSize: TabBarIndicatorSize.tab,
-          labelStyle: GoogleFonts.poppins(
+          labelStyle: GoogleFonts.dmSans(
             fontWeight: FontWeight.w600,
             fontSize: 14,
             letterSpacing: 0.5,
           ),
-          unselectedLabelStyle: GoogleFonts.poppins(
+          unselectedLabelStyle: GoogleFonts.dmSans(
             fontWeight: FontWeight.w500,
             fontSize: 14,
           ),
@@ -135,7 +135,7 @@ class _TransactionScreenState extends State<TransactionScreen>
       return Center(
         child: Text(
           'No transactions yet',
-          style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600]),
+          style: GoogleFonts.dmSans(fontSize: 16, color: Colors.grey[600]),
         ),
       );
     }
@@ -178,7 +178,7 @@ class _TransactionScreenState extends State<TransactionScreen>
                 children: [
                   Text(
                     transaction.title,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.dmSans(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: primaryColor,
@@ -188,7 +188,7 @@ class _TransactionScreenState extends State<TransactionScreen>
                   Text(
                     DateFormat('MMM dd, yyyy • hh:mm a')
                         .format(transaction.date),
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.dmSans(
                       fontSize: 13,
                       color: Colors.grey[600],
                       fontWeight: FontWeight.w500,
@@ -203,7 +203,7 @@ class _TransactionScreenState extends State<TransactionScreen>
                 Text(
                   // Add + or - sign depending on isIncome
                   '${transaction.isIncome ? '+' : '-'}£${transaction.amount.toStringAsFixed(2)}',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.dmSans(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: transaction.isIncome ? darkGreen : darkRed,
@@ -222,7 +222,7 @@ class _TransactionScreenState extends State<TransactionScreen>
                   child: Text(
                     // You can customize these status labels
                     transaction.isIncome ? 'Completed' : 'Processed',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.dmSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: transaction.isIncome ? darkGreen : darkRed,
