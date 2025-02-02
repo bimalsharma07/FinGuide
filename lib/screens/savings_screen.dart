@@ -257,7 +257,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
   }
 
   Widget _buildPointsCard(SavingsService service) {
-    final points = service.totalSavings / 10; // Use totalSavings getter
+    final points = service.totalSavings / 100; // Use totalSavings getter
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
