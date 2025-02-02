@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../services/savings_service.dart';
-import '../models/transaction.dart'; 
+import '../models/transaction.dart';
 import '../dialogs/transfer_dialog.dart';
 import '../dialogs/add_card_popup.dart';
 import '../dialogs/set_goal_dialog.dart';
@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
             listen: false,
           );
 
-          // 1) Update main balance
+          // 1) Update main balance and income
           savingsService.addToBalance(amount);
 
           // 2) Log this as an income transaction
@@ -87,56 +87,56 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─────────────────────────────────────────────────────────────────────────────
   // NAVIGATION BAR
   // ─────────────────────────────────────────────────────────────────────────────
- Widget _buildNavigationBar() {
-  return Theme(
-    data: Theme.of(context).copyWith(
-      // Define the NavigationBar theme
-      navigationBarTheme: NavigationBarThemeData(
-        // Define the label text style
-        labelTextStyle: MaterialStateProperty.all<TextStyle>(
-          GoogleFonts.dmSans( 
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF0D1C2E), 
+  Widget _buildNavigationBar() {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        // Define the NavigationBar theme
+        navigationBarTheme: NavigationBarThemeData(
+          // Define the label text style
+          labelTextStyle: WidgetStateProperty.all<TextStyle>(
+            GoogleFonts.dmSans(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF0D1C2E),
+            ),
           ),
+          // Optionally, define the indicator color
+          indicatorColor: primaryColor.withOpacity(0.1),
+          // Optionally, define the background color
+          backgroundColor: Colors.white,
         ),
-        // Optionally, define the indicator color
-        indicatorColor: primaryColor.withOpacity(0.1),
-        // Optionally, define the background color
-        backgroundColor: Colors.white,
       ),
-    ),
-    child: NavigationBar(
-      selectedIndex: _selectedIndex,
-      onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-      height: 72,
-      backgroundColor: Colors.white, // This can be omitted if set in theme
-      elevation: 8,
-      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.home_outlined, size: 26),
-          selectedIcon: Icon(Icons.home_filled, size: 26),
-          label: 'Home',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.savings_outlined, size: 26),
-          selectedIcon: Icon(Icons.savings, size: 26),
-          label: 'Savings',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.account_balance_wallet_outlined, size: 26),
-          selectedIcon: Icon(Icons.account_balance_wallet, size: 26),
-          label: 'Transaction',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.currency_pound_outlined, size: 26),
-          selectedIcon: Icon(Icons.currency_pound, size: 26),
-          label: 'Wealth',
-        ),
-      ],
-    )
-  );
+      child: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+        height: 72,
+        backgroundColor: Colors.white, // This can be omitted if set in theme
+        elevation: 8,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined, size: 26),
+            selectedIcon: Icon(Icons.home_filled, size: 26),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.savings_outlined, size: 26),
+            selectedIcon: Icon(Icons.savings, size: 26),
+            label: 'Savings',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined, size: 26),
+            selectedIcon: Icon(Icons.account_balance_wallet, size: 26),
+            label: 'Transaction',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.currency_pound_outlined, size: 26),
+            selectedIcon: Icon(Icons.currency_pound, size: 26),
+            label: 'Wealth',
+          ),
+        ],
+      ),
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 24),
             _buildBalanceCard(savingsService),
             const SizedBox(height: 24),
-            _buildFinanceOverview(),
+            _buildFinanceOverview(savingsService),
             const SizedBox(height: 24),
             _buildTransferToSavingsButton(),
             const SizedBox(height: 12),
@@ -221,6 +221,44 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (_) => PayBillsDialog(
         balance: savingsService.balance,
+        onBillPaid: (String billType, double amount) {
+          if (savingsService.balance < amount) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Payment failed: Insufficient balance.',
+                  style: GoogleFonts.dmSans(color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
+
+          // Deduct from balance and add to expenses
+          savingsService.deductFromBalance(amount);
+
+          // Log this as an expense transaction
+          savingsService.addTransaction(
+            Transaction(
+              title: 'Bill Paid: $billType',
+              amount: amount,
+              date: DateTime.now(),
+              isIncome: false,
+            ),
+          );
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '£${amount.toStringAsFixed(2)} paid for $billType',
+                style: GoogleFonts.dmSans(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
       ),
     );
   }
@@ -391,76 +429,51 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─────────────────────────────────────────────────────────────────────────────
   // BALANCE CARD
   // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildBalanceCard(SavingsService service) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: primaryColor.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: primaryColor.withOpacity(0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'Total Balance',
-            style: GoogleFonts.dmSans(
-              color: Color(0xFF0D1C2E),
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-            ),
+ Widget _buildBalanceCard(SavingsService service) {
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    decoration: BoxDecoration(
+      color: primaryColor.withOpacity(0.03),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: primaryColor.withOpacity(0.1)),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          'Total Balance',
+          style: GoogleFonts.dmSans(
+            color: const Color(0xFF0D1C2E),
+            fontSize: 18,  // Reduced from 24
+            fontWeight: FontWeight.w600,
           ),
-          const SizedBox(height: 8),
-          Text(
-            '£${service.balance.toStringAsFixed(2)}',
-            style: GoogleFonts.dmSans(
-              color: primaryColor,
-              fontSize: 40,
-              fontWeight: FontWeight.w900,
-            ),
+        ),
+        const SizedBox(height: 4),  // Reduced from 8
+        Text(
+          '£${service.balance.toStringAsFixed(2)}',
+          style: GoogleFonts.dmSans(
+            color: primaryColor,
+            fontSize: 32,  // Reduced from 40
+            fontWeight: FontWeight.w900,
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.trending_up,
-                  color: Colors.green.shade800,
-                  size: 16,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '+2.4%',
-                  style: GoogleFonts.dmSans(
-                    color: Colors.green.shade800,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   // ─────────────────────────────────────────────────────────────────────────────
   // FINANCE OVERVIEW
   // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildFinanceOverview() {
+  Widget _buildFinanceOverview(SavingsService service) {
     return Row(
       children: [
         Expanded(
           child: _buildFinanceCard(
             title: 'Income',
-            amount: '£3,000',
+            amount: '£${service.income.toStringAsFixed(2)}',
             color: Colors.green,
             icon: Icons.arrow_upward_rounded,
           ),
@@ -469,7 +482,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(
           child: _buildFinanceCard(
             title: 'Expenses',
-            amount: '£800',
+            amount: '£${service.expenses.toStringAsFixed(2)}',
             color: Colors.red,
             icon: Icons.arrow_downward_rounded,
           ),
