@@ -1,56 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class AddCardPopup extends StatefulWidget {
-  final Function(double) onAmountAdded;
+class PayBillsDialog extends StatefulWidget {
+  final double balance;
+  final Function(String, double) onBillPaid;
 
-  const AddCardPopup({super.key, required this.onAmountAdded});
+  const PayBillsDialog({
+    super.key,
+    required this.balance,
+    required this.onBillPaid,
+  });
 
   @override
-  State<AddCardPopup> createState() => _AddCardPopupState();
+  State<PayBillsDialog> createState() => _PayBillsDialogState();
 }
 
-class _AddCardPopupState extends State<AddCardPopup> {
+class _PayBillsDialogState extends State<PayBillsDialog> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _cardController = TextEditingController();
-  final TextEditingController _pinController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
+  String selectedBill = 'Netflix'; // Default bill type
 
-  @override
-  void dispose() {
-    _cardController.dispose();
-    _pinController.dispose();
-    _amountController.dispose();
-    super.dispose();
-  }
-
-  String? _validateCard(String? value) {
-    if (value == null || value.isEmpty) return 'Card number required';
-    if (value.length != 16) return '16 digits required';
-    return null;
-  }
-
-  String? _validatePin(String? value) {
-    if (value == null || value.isEmpty) return 'PIN required';
-    if (value.length != 4) return '4 digits required';
-    return null;
-  }
-
+  // ─────────────────────────────────────────────────────────────────────────────
+  // VALIDATION: Check if the entered amount is valid
+  // ─────────────────────────────────────────────────────────────────────────────
   String? _validateAmount(String? value) {
-    if (value == null || value.isEmpty) return 'Amount required';
-    final amount = double.tryParse(value);
-    if (amount == null) return 'Invalid amount';
-    if (amount < 5) return 'Minimum £5 required';
-    return null;
-  }
-
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      final amount = double.parse(_amountController.text);
-      widget.onAmountAdded(amount);
-      Navigator.pop(context);
+    if (value == null || value.isEmpty) {
+      return 'Please enter amount';
     }
+    final amount = double.tryParse(value);
+    if (amount == null) {
+      return 'Invalid amount';
+    }
+    if (amount <= 0) {
+      return 'Amount must be greater than 0';
+    }
+    if (amount > widget.balance) {
+      return 'Insufficient balance';
+    }
+    return null;
   }
 
   @override
@@ -59,16 +46,17 @@ class _AddCardPopupState extends State<AddCardPopup> {
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Title
               Text(
-                'Add Funds',
-                style: GoogleFonts.poppins(
+                'Pay Bills',
+                style: GoogleFonts.dmSans(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: const Color(0xFF0D1C2E),
@@ -76,63 +64,74 @@ class _AddCardPopupState extends State<AddCardPopup> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              TextFormField(
-                controller: _cardController,
+
+              // Bill Type Dropdown
+              DropdownButtonFormField<String>(
+                value: selectedBill,
                 decoration: InputDecoration(
-                  labelText: 'Card Number',
-                  prefixIcon: const Icon(Icons.credit_card),
+                  labelText: 'Bill Type',
+                  labelStyle: GoogleFonts.dmSans(fontSize: 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  errorStyle: GoogleFonts.poppins(color: Colors.red),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(16),
-                ],
-                validator: _validateCard,
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: _pinController,
-                decoration: InputDecoration(
-                  labelText: 'PIN',
-                  prefixIcon: const Icon(Icons.lock),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
                   ),
-                  errorStyle: GoogleFonts.poppins(color: Colors.red),
                 ),
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(4),
-                ],
-                validator: _validatePin,
+                items: ['Netflix', 'Sky TV', 'Broadband']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedBill = newValue!;
+                  });
+                },
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
+
+              // Amount Input with Validation
               TextFormField(
                 controller: _amountController,
                 decoration: InputDecoration(
-                  labelText: 'Amount (£)',
-                  prefixIcon: const Icon(Icons.currency_pound),
+                  labelText: 'Amount',
+                  labelStyle: GoogleFonts.dmSans(fontSize: 14),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.only(left: 16, top: 14),
+                    child: Text('£', style: TextStyle(fontSize: 16)),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  errorStyle: GoogleFonts.poppins(color: Colors.red),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  errorStyle: GoogleFonts.dmSans(
+                    color: Colors.red,
+                    fontSize: 12,
+                  ),
                 ),
+                style: GoogleFonts.dmSans(fontSize: 14),
                 keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                ],
-                validator: _validateAmount,
+                validator: _validateAmount, // Add validator here
               ),
               const SizedBox(height: 25),
-              FilledButton(
-                onPressed: _submitForm,
-                style: FilledButton.styleFrom(
+
+              // Pay Button
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    final amount = double.parse(_amountController.text);
+                    widget.onBillPaid(selectedBill, amount);
+                    Navigator.pop(context);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0D1C2E),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -140,8 +139,8 @@ class _AddCardPopupState extends State<AddCardPopup> {
                   ),
                 ),
                 child: Text(
-                  'Add Amount',
-                  style: GoogleFonts.poppins(
+                  'Pay',
+                  style: GoogleFonts.dmSans(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
