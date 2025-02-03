@@ -2,20 +2,24 @@ import 'package:flutter/material.dart';
 import '../models/transaction.dart';
 
 class SavingsService with ChangeNotifier {
-  double _balance = 2200.00;
+  double _balance = 0.0; // Initialize balance to zero
+  double _income = 0.0; // Track total income
+  double _expenses = 0.0; // Track total expenses
   final List<Transaction> _transactions = [];
   final Map<String, Map<String, double>> _savings = {
-    'Dream House': {'amount': 500.00, 'goal': 10000.00},
-    'Education': {'amount': 300.00, 'goal': 5000.00},
-    'Travel': {'amount': 200.00, 'goal': 3000.00},
-    'Health': {'amount': 100.00, 'goal': 2000.00},
-    'Marriage': {'amount': 50.00, 'goal': 10000.00},
+    'Dream House': {'amount': 0.0, 'goal': 0.00}, // Initialize amounts to zero
+    'Education': {'amount': 0.0, 'goal': 0.00},
+    'Travel': {'amount': 0.0, 'goal': 0.00},
+    'Health': {'amount': 0.0, 'goal': 0.00},
+    'Marriage': {'amount': 0.0, 'goal': 0.00},
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
   // GETTERS
   // ─────────────────────────────────────────────────────────────────────────────
   double get balance => _balance;
+  double get income => _income;
+  double get expenses => _expenses;
   List<Transaction> get transactions => _transactions;
   Map<String, Map<String, double>> get savings => _savings;
 
@@ -27,9 +31,17 @@ class SavingsService with ChangeNotifier {
   // ─────────────────────────────────────────────────────────────────────────────
   // METHODS
   // ─────────────────────────────────────────────────────────────────────────────
-  /// Increase the main balance by [amount].
+  /// Increase the main balance by [amount] and add to income.
   void addToBalance(double amount) {
     _balance += amount;
+    _income += amount; // Add to income when money is loaded
+    notifyListeners();
+  }
+
+  /// Deduct [amount] from the main balance and add to expenses.
+  void deductFromBalance(double amount) {
+    _balance -= amount;
+    _expenses += amount; // Add to expenses when bills are paid
     notifyListeners();
   }
 
