@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../services/wealth_service.dart';
 import '../models/asset_model.dart';
 import '../dialogs/add_asset_form.dart';
@@ -23,98 +24,171 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
     final totalNetWorth = wealthService.totalNetWorth;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color.fromARGB(255, 218, 222, 228),
+        backgroundColor: const Color(0xFF0D1C2E),
         child: const Icon(Icons.add, color: Colors.white, size: 24),
         onPressed: () => _showAddAssetDialog(context, wealthService),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9)],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Wealth Dashboard',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0D1C2E),
-                        fontFamily: 'DmSans',
-                      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Wealth Dashboard',
+                    style: GoogleFonts.poppins(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0D1C2E),
                     ),
-                    const SizedBox(height: 24),
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.white.withOpacity(0.8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 20,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Net Worth',
-                              style: TextStyle(
-                                color: Color(0xFF64748B),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _currencyFormat.format(totalNetWorth),
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
+                  ),
+                  const SizedBox(height: 24),
+                  _buildNetWorthCard(totalNetWorth),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Your Assets',
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF0D1C2E),
                         ),
                       ),
+                      Text(
+                        'Value',
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF0D1C2E),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                itemCount: assets.length,
+                itemBuilder: (context, index) {
+                  final asset = assets[index];
+                  return _buildAssetCard(context, wealthService, asset, index);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNetWorthCard(double totalNetWorth) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0D1C2E), Color(0xFF1E3A5F)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Net Worth',
+            style: GoogleFonts.poppins(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _currencyFormat.format(totalNetWorth),
+            style: GoogleFonts.poppins(
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAssetCard(BuildContext context, WealthService wealthService, Asset asset, int index) {
+    final currentValue = asset.getCurrentValue();
+    final change = currentValue - asset.value;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: InkWell(
+        onTap: () => _editAssetDialog(context, wealthService, asset, index),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: _getAssetIcon(asset.type),
                     ),
-                    const SizedBox(height: 24),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Your Assets',
-                            style: TextStyle(
-                              fontSize: 20,
+                            asset.name,
+                            style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                              fontFamily: 'DmSans',
+                              color: const Color(0xFF0D1C2E),
+                              fontSize: 18,
                             ),
                           ),
+                          const SizedBox(height: 4),
                           Text(
-                            'Value',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                              fontFamily: 'DmSans',
+                            asset.type == 'Cash'
+                                ? 'Cash'
+                                : '${asset.type} • Purchased: ${DateFormat('yyyy-MM-dd').format(asset.dateOfPurchase)}',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF64748B),
+                              fontSize: 14,
                             ),
                           ),
                         ],
@@ -122,90 +196,14 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
                     ),
                   ],
                 ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: assets.length,
-                  itemBuilder: (context, index) {
-                    final asset = assets[index];
-                    final currentValue = asset.getCurrentValue();
-                    final change = currentValue - asset.value;
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Container(
-                        height: 220,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          color: Colors.white.withOpacity(0.8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                        child: InkWell(
-                          onTap: () => _editAssetDialog(context, wealthService, asset, index),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFF1F5F9),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: _getAssetIcon(asset.type),
-                                ),
-                                const SizedBox(width: 20),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        asset.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black,
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 3),
-                                      Text(
-                                        asset.type == 'Cash'
-                                            ? 'Cash'
-                                            : '${asset.type} • Purchased: ${DateFormat('yyyy-MM-dd').format(asset.dateOfPurchase)}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          color: Color(0xFF64748B),
-                                          fontSize: 16,
-                                          fontFamily: 'DmSans',
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      _buildFinancialInfo(
-                                        current: currentValue,
-                                        initial: asset.value,
-                                        change: change,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                const SizedBox(height: 16),
+                _buildFinancialInfo(
+                  current: currentValue,
+                  initial: asset.value,
+                  change: change,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -219,19 +217,19 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
   }) {
     return Column(
       children: [
-        _buildValueRow(label: 'Current:', value: current, fontSize: 16),
+        _buildValueRow(label: 'Current:', value: current, fontSize: 14),
         const SizedBox(height: 8),
         _buildValueRow(
           label: 'Initial:',
           value: initial,
-          fontSize: 16,
+          fontSize: 14,
           color: const Color(0xFF64748B),
         ),
         const SizedBox(height: 8),
         _buildValueRow(
           label: 'Change:',
           value: change,
-          fontSize: 16,
+          fontSize: 14,
           color: change >= 0 ? Colors.green : Colors.red,
         ),
       ],
@@ -242,25 +240,24 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
     required String label,
     required double value,
     required double fontSize,
-    Color color = Colors.black,
+    Color color = const Color(0xFF0D1C2E),
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             fontWeight: FontWeight.w500,
             color: const Color(0xFF64748B),
             fontSize: fontSize,
-            fontFamily: 'DmSans',
           ),
         ),
         Text(
-           label == 'Change:' 
-            ? '${value >= 0 ? '+' : ''}${_currencyFormat.format(value)}'
-            : _currencyFormat.format(value),
-          style: TextStyle(
+          label == 'Change:'
+              ? '${value >= 0 ? '+' : ''}${_currencyFormat.format(value)}'
+              : _currencyFormat.format(value),
+          style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
             color: color,
             fontSize: fontSize + 2,
@@ -280,7 +277,7 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
     return Icon(
       icons[type] ?? Icons.attach_money,
       color: const Color(0xFF475569),
-      size: 28,
+      size: 24,
     );
   }
 
@@ -288,6 +285,7 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: AddAssetForm(
           onAdd: (newAsset) {
             wealthService.addAsset(newAsset);
@@ -307,6 +305,7 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: EditAssetForm(
           asset: asset,
           onSave: (updatedAsset) {
@@ -318,3 +317,4 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
     );
   }
 }
+
