@@ -14,7 +14,7 @@ import 'transaction_screen.dart';
 import 'wealth_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -28,120 +28,60 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      body: _getScreenForIndex(_selectedIndex),
+      bottomNavigationBar: _buildNavigationBar(),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddCardPopup,
         backgroundColor: primaryColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        elevation: 1,
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+        child: const Icon(Icons.add, color: Colors.white),
+        elevation: 2,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      body: _getScreenForIndex(_selectedIndex),
-      bottomNavigationBar: _buildNavigationBar(),
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // FLOATING ACTION BUTTON → Add Card Popup
-  // ─────────────────────────────────────────────────────────────────────────────
-  void _showAddCardPopup() {
-    showDialog(
-      context: context,
-      builder: (context) => AddCardPopup(
-        onAmountAdded: (amount) {
-          final savingsService = Provider.of<SavingsService>(
-            context,
-            listen: false,
-          );
-
-          // 1) Update main balance and income
-          savingsService.addToBalance(amount);
-
-          // 2) Log this as an income transaction
-          savingsService.addTransaction(
-            Transaction(
-              title: 'Funds Loaded',
-              amount: amount,
-              date: DateTime.now(),
-              isIncome: true,
-            ),
-          );
-
-          // 3) Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '£${amount.toStringAsFixed(2)} Loaded in your Account',
-                style: GoogleFonts.dmSans(color: Colors.white),
-              ),
-              backgroundColor: Colors.green,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // NAVIGATION BAR
-  // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildNavigationBar() {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        // Define the NavigationBar theme
-        navigationBarTheme: NavigationBarThemeData(
-          // Define the label text style
-          labelTextStyle: WidgetStateProperty.all<TextStyle>(
-            GoogleFonts.dmSans(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF0D1C2E),
-            ),
+    return NavigationBar(
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: (index) {
+        setState(() {
+          _selectedIndex = index;
+        });
+      },
+      backgroundColor: Colors.white,
+      destinations: [
+        NavigationDestination(
+          icon: Icon(
+            Icons.home,
+            color: _selectedIndex == 0 ? primaryColor : Colors.grey,
           ),
-          // Optionally, define the indicator color
-          indicatorColor: primaryColor.withOpacity(0.1),
-          // Optionally, define the background color
-          backgroundColor: Colors.white,
+          label: 'Home',
         ),
-      ),
-      child: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-        height: 72,
-        backgroundColor: Colors.white, // This can be omitted if set in theme
-        elevation: 8,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined, size: 26),
-            selectedIcon: Icon(Icons.home_filled, size: 26),
-            label: 'Home',
+        NavigationDestination(
+          icon: Icon(
+            Icons.savings,
+            color: _selectedIndex == 1 ? primaryColor : Colors.grey,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.savings_outlined, size: 26),
-            selectedIcon: Icon(Icons.savings, size: 26),
-            label: 'Savings',
+          label: 'Savings',
+        ),
+        NavigationDestination(
+          icon: Icon(
+            Icons.receipt_long,
+            color: _selectedIndex == 2 ? primaryColor : Colors.grey,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined, size: 26),
-            selectedIcon: Icon(Icons.account_balance_wallet, size: 26),
-            label: 'Transaction',
+          label: 'Transactions',
+        ),
+        NavigationDestination(
+          icon: Icon(
+            Icons.account_balance_wallet,
+            color: _selectedIndex == 3 ? primaryColor : Colors.grey,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.currency_pound_outlined, size: 26),
-            selectedIcon: Icon(Icons.currency_pound, size: 26),
-            label: 'Wealth',
-          ),
-        ],
-      ),
+          label: 'Wealth',
+        ),
+      ],
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // SCREEN SWITCHER
-  // ─────────────────────────────────────────────────────────────────────────────
   Widget _getScreenForIndex(int index) {
     switch (index) {
       case 0:
@@ -157,188 +97,309 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // HOME CONTENT
-  // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildHomeContent() {
     final savingsService = Provider.of<SavingsService>(context);
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 24),
+              _buildBalanceCard(savingsService),
+              const SizedBox(height: 24),
+              _buildFinanceOverview(savingsService),
+              const SizedBox(height: 24),
+              _buildQuickActions(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
-            const SizedBox(height: 24),
-            _buildBalanceCard(savingsService),
-            const SizedBox(height: 24),
-            _buildFinanceOverview(savingsService),
-            const SizedBox(height: 24),
-            _buildTransferToSavingsButton(),
-            const SizedBox(height: 12),
-            _buildSetGoalButton(),
-            const SizedBox(height: 12),
-            _buildPayBillsButton(),
+            Text(
+              'Welcome back',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            Text(
+              'Bimal 👋',
+              style: GoogleFonts.poppins(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: primaryColor,
+              ),
+            ),
           ],
         ),
-      ),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ProfileScreen()),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: primaryColor, width: 2),
+            ),
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: Colors.transparent,
+              child: Icon(Icons.person, color: primaryColor, size: 30),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PAY BILLS FLOW
-  // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildPayBillsButton() {
-    return SizedBox(
+  Widget _buildBalanceCard(SavingsService service) {
+    return Container(
       width: double.infinity,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.payment, color: Colors.white),
-        label: Text(
-          'Pay Bills',
-          style: GoogleFonts.dmSans(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 18,
-          ),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [primaryColor, primaryColor.withOpacity(0.8)],
         ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
-        ),
-        onPressed: () => _showPayBillsDialog(context),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Total Balance',
+            style: GoogleFonts.poppins(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '£${service.balance.toStringAsFixed(2)}',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          // Income and expenses section removed.
+        ],
       ),
     );
   }
 
-  void _showPayBillsDialog(BuildContext context) {
-    final savingsService = Provider.of<SavingsService>(context, listen: false);
+  Widget _buildFinanceOverview(SavingsService service) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Finance Overview',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: primaryColor,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildFinanceCard(
+                title: 'Income',
+                amount: '£${service.income.toStringAsFixed(2)}',
+                color: Colors.green,
+                icon: Icons.arrow_upward_rounded,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildFinanceCard(
+                title: 'Expenses',
+                amount: '£${service.expenses.toStringAsFixed(2)}',
+                color: Colors.red,
+                icon: Icons.arrow_downward_rounded,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 
+  Widget _buildFinanceCard({
+    required String title,
+    required String amount,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            amount,
+            style: GoogleFonts.poppins(
+              color: primaryColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Quick Actions',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: primaryColor,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildQuickActionButton(
+              icon: Icons.savings,
+              label: 'Transfer',
+              onTap: () => _showTransferDialog(context),
+            ),
+            _buildQuickActionButton(
+              icon: Icons.flag,
+              label: 'Set Goal',
+              onTap: () => _showSetGoalDialog(context),
+            ),
+            _buildQuickActionButton(
+              icon: Icons.payment,
+              label: 'Pay Bills',
+              onTap: () => _showPayBillsDialog(context),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: primaryColor, size: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              color: primaryColor,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddCardPopup() {
     showDialog(
       context: context,
-      builder: (_) => PayBillsDialog(
-        balance: savingsService.balance,
-        onBillPaid: (String billType, double amount) {
-          if (savingsService.balance < amount) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Payment failed: Insufficient balance.',
-                  style: GoogleFonts.dmSans(color: Colors.white),
-                ),
-                backgroundColor: Colors.red,
-              ),
-            );
-            return;
-          }
+      builder: (context) => AddCardPopup(
+        onAmountAdded: (amount) {
+          final savingsService = Provider.of<SavingsService>(
+            context,
+            listen: false,
+          );
 
-          // Deduct from balance and add to expenses
-          savingsService.deductFromBalance(amount);
-
-          // Log this as an expense transaction
+          savingsService.addToBalance(amount);
           savingsService.addTransaction(
             Transaction(
-              title: 'Bill Paid: $billType',
+              title: 'Funds Loaded',
               amount: amount,
               date: DateTime.now(),
-              isIncome: false,
+              isIncome: true,
             ),
           );
 
-          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '£${amount.toStringAsFixed(2)} paid for $billType',
-                style: GoogleFonts.dmSans(color: Colors.white),
+                '£${amount.toStringAsFixed(2)} Loaded in your Account',
+                style: GoogleFonts.poppins(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
           );
         },
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // SET GOAL
-  // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildSetGoalButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.flag, color: Colors.white),
-        label: Text(
-          'Set Savings Goal',
-          style: GoogleFonts.dmSans(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 18,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        onPressed: () => _showSetGoalDialog(context),
-      ),
-    );
-  }
-
-  void _showSetGoalDialog(BuildContext context) {
-    final savingsService = Provider.of<SavingsService>(context, listen: false);
-
-    showDialog(
-      context: context,
-      builder: (context) => SetGoalDialog(
-        onGoalSet: (category, goal) {
-          // No check against balance, user can set any goal
-          savingsService.setSavingsGoal(category, goal);
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Goal for $category set successfully!',
-                style: GoogleFonts.dmSans(color: Colors.white),
-              ),
-              backgroundColor: Colors.green,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // TRANSFER TO SAVINGS
-  // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildTransferToSavingsButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.savings, color: Colors.white),
-        label: Text(
-          'Transfer to Savings',
-          style: GoogleFonts.dmSans(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 18,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        onPressed: () => _showTransferDialog(context),
       ),
     );
   }
@@ -356,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
               SnackBar(
                 content: Text(
                   'Transfer failed: Insufficient balance.',
-                  style: GoogleFonts.dmSans(color: Colors.white),
+                  style: GoogleFonts.poppins(color: Colors.white),
                 ),
                 backgroundColor: Colors.red,
               ),
@@ -364,15 +425,13 @@ class _HomeScreenState extends State<HomeScreen> {
             return;
           }
 
-          // Deduct from main balance & add to chosen savings category
           savingsService.transferToSavings(category, amount);
 
-          // Show success
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 '£${amount.toStringAsFixed(2)} transferred to $category!',
-                style: GoogleFonts.dmSans(color: Colors.white),
+                style: GoogleFonts.poppins(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
@@ -382,162 +441,70 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // HEADER (Profile avatar navigates to ProfileScreen)
-  // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Welcome 👋',
-              style: GoogleFonts.dmSans(
-                fontSize: 20,
-                color: Colors.grey.shade600,
+  void _showSetGoalDialog(BuildContext context) {
+    final savingsService = Provider.of<SavingsService>(context, listen: false);
+
+    showDialog(
+      context: context,
+      builder: (context) => SetGoalDialog(
+        onGoalSet: (category, goal) {
+          savingsService.setSavingsGoal(category, goal);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Goal for $category set successfully!',
+                style: GoogleFonts.poppins(color: Colors.white),
               ),
+              backgroundColor: Colors.green,
             ),
-            Text(
-              'Bimal',
-              style: GoogleFonts.dmSans(
-                fontSize: 30,
-                fontWeight: FontWeight.w700,
-                color: primaryColor,
-              ),
-            ),
-          ],
-        ),
-        InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
-            );
-          },
-          child: CircleAvatar(
-            radius: 24,
-            backgroundColor: primaryColor.withOpacity(0.1),
-            child: Icon(Icons.account_circle, color: primaryColor, size: 38),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // BALANCE CARD
-  // ─────────────────────────────────────────────────────────────────────────────
- Widget _buildBalanceCard(SavingsService service) {
-  return Container(
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-    decoration: BoxDecoration(
-      color: primaryColor.withOpacity(0.03),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: primaryColor.withOpacity(0.1)),
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          'Total Balance',
-          style: GoogleFonts.dmSans(
-            color: const Color(0xFF0D1C2E),
-            fontSize: 18,  // Reduced from 24
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 4),  // Reduced from 8
-        Text(
-          '£${service.balance.toStringAsFixed(2)}',
-          style: GoogleFonts.dmSans(
-            color: primaryColor,
-            fontSize: 32,  // Reduced from 40
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // FINANCE OVERVIEW
-  // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildFinanceOverview(SavingsService service) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildFinanceCard(
-            title: 'Income',
-            amount: '£${service.income.toStringAsFixed(2)}',
-            color: Colors.green,
-            icon: Icons.arrow_upward_rounded,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildFinanceCard(
-            title: 'Expenses',
-            amount: '£${service.expenses.toStringAsFixed(2)}',
-            color: Colors.red,
-            icon: Icons.arrow_downward_rounded,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFinanceCard({
-    required String title,
-    required String amount,
-    required Color color,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.1)),
+          );
+        },
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
+    );
+  }
+
+  void _showPayBillsDialog(BuildContext context) {
+    final savingsService = Provider.of<SavingsService>(context, listen: false);
+
+    showDialog(
+      context: context,
+      builder: (_) => PayBillsDialog(
+        balance: savingsService.balance,
+        onBillPaid: (String billType, double amount) {
+          if (savingsService.balance < amount) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Payment failed: Insufficient balance.',
+                  style: GoogleFonts.poppins(color: Colors.white),
                 ),
-                child: Icon(icon, color: color, size: 20),
+                backgroundColor: Colors.red,
               ),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: GoogleFonts.dmSans(
-                  color: color,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 20,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            amount,
-            style: GoogleFonts.dmSans(
-              color: primaryColor,
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
+            );
+            return;
+          }
+
+          savingsService.deductFromBalance(amount);
+          savingsService.addTransaction(
+            Transaction(
+              title: 'Bill Paid: $billType',
+              amount: amount,
+              date: DateTime.now(),
+              isIncome: false,
             ),
-          ),
-        ],
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '£${amount.toStringAsFixed(2)} paid for $billType',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
       ),
     );
   }
