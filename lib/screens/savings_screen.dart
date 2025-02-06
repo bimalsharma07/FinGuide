@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 import '../services/savings_service.dart';
 import '../dialogs/withdrawal_dialog.dart';
 
@@ -236,28 +238,26 @@ class _SavingsScreenState extends State<SavingsScreen> {
         currentAmount: currentAmount,
         onWithdraw: (amount) {
           if (amount > currentAmount) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Sorry, you cannot withdraw more than £${currentAmount.toStringAsFixed(2)}.',
-                  style: GoogleFonts.poppins(color: Colors.white),
-                ),
-                backgroundColor: Colors.red,
-              ),
+            // Instead of a SnackBar, use Toast
+            Fluttertoast.showToast(
+              msg: 'Sorry, you cannot withdraw more than £${currentAmount.toStringAsFixed(2)}.',
+              backgroundColor: const Color(0xFF0D1C2E),
+              textColor: Colors.white,
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
             );
             return;
           }
 
           savingsService.transferToBalance(category, amount);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Withdrawal of £${amount.toStringAsFixed(2)} successful!',
-                style: GoogleFonts.poppins(color: Colors.white),
-              ),
-              backgroundColor: Colors.green,
-            ),
+          // Success Toast
+          Fluttertoast.showToast(
+            msg: 'Withdrawal of £${amount.toStringAsFixed(2)} from $category successful!',
+            backgroundColor: const Color(0xFF0D1C2E),
+            textColor: Colors.white,
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
           );
 
           Navigator.pop(context);
