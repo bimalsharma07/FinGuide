@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 import '../services/wealth_service.dart';
 import '../models/asset_model.dart';
 import '../dialogs/add_asset_form.dart';
@@ -290,6 +292,15 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
           onAdd: (newAsset) {
             wealthService.addAsset(newAsset);
             Navigator.pop(context);
+
+            // Show Toast when Asset is added
+            Fluttertoast.showToast(
+              msg: 'Asset added successfully!',
+              backgroundColor: const Color(0xFF0D1C2E),
+              textColor: Colors.white,
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+            );
           },
         ),
       ),
@@ -311,10 +322,18 @@ class _WealthManagementScreenState extends State<WealthManagementScreen> {
           onSave: (updatedAsset) {
             wealthService.updateAsset(index, updatedAsset);
             Navigator.pop(context);
+
+            // Show Toast when Asset is edited
+            Fluttertoast.showToast(
+              msg: 'Asset updated successfully!',
+              backgroundColor: const Color(0xFF0D1C2E),
+              textColor: Colors.white,
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+            );
           },
         ),
       ),
     );
   }
 }
-
