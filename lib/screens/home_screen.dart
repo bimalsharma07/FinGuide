@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_2/dialogs/pay_bills_dialog.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../services/savings_service.dart';
 import '../models/transaction.dart';
@@ -14,7 +15,7 @@ import 'transaction_screen.dart';
 import 'wealth_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -33,8 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddCardPopup,
         backgroundColor: primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
         elevation: 2,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
@@ -103,8 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: SingleChildScrollView(
         child: Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -150,8 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) => const ProfileScreen()),
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
             );
           },
           child: Container(
@@ -370,6 +369,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Add Card Popup → Use Toast
+  // ─────────────────────────────────────────────────────────────────────────────
   void _showAddCardPopup() {
     showDialog(
       context: context,
@@ -380,6 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
             listen: false,
           );
 
+          // Update balance & transactions
           savingsService.addToBalance(amount);
           savingsService.addTransaction(
             Transaction(
@@ -390,20 +393,22 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '£${amount.toStringAsFixed(2)} Loaded in your Account',
-                style: GoogleFonts.poppins(color: Colors.white),
-              ),
-              backgroundColor: Colors.green,
-            ),
+          // Show success Toast
+          Fluttertoast.showToast(
+            msg: '£${amount.toStringAsFixed(2)} Loaded in your Account',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: const Color(0xFF0D1C2E),
+            textColor: Colors.white,
           );
         },
       ),
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Transfer Dialog → Use Toast
+  // ─────────────────────────────────────────────────────────────────────────────
   void _showTransferDialog(BuildContext context) {
     final savingsService = Provider.of<SavingsService>(context, listen: false);
 
@@ -413,34 +418,33 @@ class _HomeScreenState extends State<HomeScreen> {
         balance: savingsService.balance,
         onTransfer: (category, amount) {
           if (savingsService.balance < amount) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Transfer failed: Insufficient balance.',
-                  style: GoogleFonts.poppins(color: Colors.white),
-                ),
-                backgroundColor: Colors.red,
-              ),
+            Fluttertoast.showToast(
+              msg: 'Transfer failed: Insufficient balance.',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: const Color(0xFF0D1C2E),
+              textColor: Colors.white,
             );
             return;
           }
 
           savingsService.transferToSavings(category, amount);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '£${amount.toStringAsFixed(2)} transferred to $category!',
-                style: GoogleFonts.poppins(color: Colors.white),
-              ),
-              backgroundColor: Colors.green,
-            ),
+          Fluttertoast.showToast(
+            msg: '£${amount.toStringAsFixed(2)} transferred to $category!',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: const Color(0xFF0D1C2E),
+            textColor: Colors.white,
           );
         },
       ),
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Set Goal Dialog → Use Toast
+  // ─────────────────────────────────────────────────────────────────────────────
   void _showSetGoalDialog(BuildContext context) {
     final savingsService = Provider.of<SavingsService>(context, listen: false);
 
@@ -450,20 +454,21 @@ class _HomeScreenState extends State<HomeScreen> {
         onGoalSet: (category, goal) {
           savingsService.setSavingsGoal(category, goal);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Goal for $category set successfully!',
-                style: GoogleFonts.poppins(color: Colors.white),
-              ),
-              backgroundColor: Colors.green,
-            ),
+          Fluttertoast.showToast(
+            msg: 'Goal for $category set successfully!',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: const Color(0xFF0D1C2E),
+            textColor: Colors.white,
           );
         },
       ),
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Pay Bills → Use Toast
+  // ─────────────────────────────────────────────────────────────────────────────
   void _showPayBillsDialog(BuildContext context) {
     final savingsService = Provider.of<SavingsService>(context, listen: false);
 
@@ -473,14 +478,12 @@ class _HomeScreenState extends State<HomeScreen> {
         balance: savingsService.balance,
         onBillPaid: (String billType, double amount) {
           if (savingsService.balance < amount) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Payment failed: Insufficient balance.',
-                  style: GoogleFonts.poppins(color: Colors.white),
-                ),
-                backgroundColor: Colors.red,
-              ),
+            Fluttertoast.showToast(
+              msg: 'Payment failed: Insufficient balance.',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: const Color(0xFF0D1C2E),
+              textColor: Colors.white,
             );
             return;
           }
@@ -495,14 +498,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '£${amount.toStringAsFixed(2)} paid for $billType',
-                style: GoogleFonts.poppins(color: Colors.white),
-              ),
-              backgroundColor: Colors.green,
-            ),
+          Fluttertoast.showToast(
+            msg: '£${amount.toStringAsFixed(2)} paid for $billType',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: const Color(0xFF0D1C2E),
+            textColor: Colors.white,
           );
         },
       ),
