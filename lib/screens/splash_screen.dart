@@ -11,7 +11,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  final Color _primaryColor = const Color(0xFF0D1C2E); // Dark blue
+  final Color _primaryColor = const Color(0xFF0D1C2E); 
   final Color _textColor = Colors.white;
 
   @override
@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   'Complete solution to your finance',
                   textStyle: GoogleFonts.poppins(
                     fontSize: 16,
-                    color: _textColor.withOpacity(0.9), // Slightly transparent white
+                    color: _textColor.withOpacity(0.9),
                     height: 1.4,
                   ),
                   speed: const Duration(milliseconds: 50),
