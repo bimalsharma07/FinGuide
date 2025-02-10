@@ -1,4 +1,4 @@
-FinGuide: Your Personal Finance Management App
+FinGuide: Personal Finance Management App
 Developed as part of my Research Dissertation, FinGuide is designed to simplify and enhance personal financial management with intuitive features tailored to meet your financial goals.
 
 Key Features of FinGuide
